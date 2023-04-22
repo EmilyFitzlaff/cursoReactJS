@@ -3,13 +3,15 @@ import { Component } from 'react';
 import { carregarPosts } from '../../utils/carregar-posts';
 import Posts from '../../components/Posts';
 import Button from '../../components/Button';
+import InputSearch from '../../components/InputSearch';
 
 class Home extends Component {
   state = {
     posts : [],
     allPosts : [],
     page : 0,
-    postsPorPagina : 100
+    postsPorPagina : 5,
+    searchValue : '',
   };
 
   // para montar o componente
@@ -45,19 +47,48 @@ class Home extends Component {
     this.setState({ posts, page: proximaPagina });
   }
 
+  handleChange = (e) => {
+    const { value } = e.target;
+
+    this.setState({ searchValue: value });
+  }
+
   render() {  
-    const { posts, page, postsPorPagina, allPosts } = this.state;
+    const { posts, page, postsPorPagina, allPosts, searchValue } = this.state;
+
     const desabilitarBotao = page + postsPorPagina >= allPosts.length;
+
+    const postsFiltrados = !!searchValue 
+      ? allPosts.filter(post => {
+        return post.title.toLowerCase().includes(searchValue.toLowerCase());
+      }) : posts;
    
     return (
       <section className='container'>
-        <Posts posts={posts} />
-        <div className='button-container'>
-          <Button
-            descricao="Carregar mais posts"
-            onClick={this.carregarMaisPosts}
-            disabled={desabilitarBotao}
+        
+        <div className='search-container'>
+          <InputSearch 
+            onChange={this.handleChange}
+            value={searchValue}
           />
+        </div>        
+
+        {postsFiltrados.length > 0 && (
+          <Posts posts={postsFiltrados} />
+        )}
+
+        {postsFiltrados.length === 0 && (
+          <p>Sem dados para exibir!</p>
+        )}        
+
+        <div className='button-container'>
+          {!searchValue && (
+            <Button
+              descricao="Carregar mais posts"
+              onClick={this.carregarMaisPosts}
+              disabled={desabilitarBotao}
+            />
+          )}          
         </div>        
       </section>
     )
